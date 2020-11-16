@@ -28,17 +28,17 @@ def loadLists():
 def splitLists(data):
     # input batch size
     # repeat until batch size is a factor or data list size
-    fact = False
-    while fact == False:
-        batchSize = 0
-        while batchSize < 1:
-            batchSize = int(input('enter batch size: '))
-        print(len(data) % batchSize)
+    # fact = False
+    # while fact == False:
+        # batchSize = 0
+        # while batchSize < 1:
+        #     batchSize = int(input('enter batch size: '))
+        # print(len(data) % batchSize)
 
-        if len(data) % batchSize == 0:
-            print('true')
-            fact = True
-    # batchSize = 4
+        # if len(data) % batchSize == 0:
+        #     print('true')
+        #     fact = True
+    batchSize = 4
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
     # split data into batches

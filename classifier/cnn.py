@@ -21,12 +21,18 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(1, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        # self.fc1 = nn.Linear(16*5*5, 120)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        print(x.size)
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
 
 
 net = Net()
@@ -63,11 +69,17 @@ for i in inputPaths:
         inputs = inputs + [Image.open(str(i))]
 print(inputs)
 
-trans = transforms.ToTensor()
+trans0 = transforms.ToPILImage()
+trans1 = transforms.ToTensor()
 
-ninputs = np.array(inputs)
+ninputs = np.asarray(inputs[0])
+# ninputs = ninputs[..., np.newaxis]
 print(ninputs.shape)
-# net.forward(trans(inputs))
+ninputs = trans0(trans1(ninputs))
+# ninputs = ninputs.unsqueeze(0)
+print(ninputs)
+# net.forward(trans1(ninputs).squeeze(0).unsqueeze(2).unsqueeze(3))
+outputs = net(trans1(ninputs).unsqueeze(1))
 
 # img = Image.open(inputPaths[3])
 # print(str(inputPaths[3]).lstrip("b'").rstrip("'"))
