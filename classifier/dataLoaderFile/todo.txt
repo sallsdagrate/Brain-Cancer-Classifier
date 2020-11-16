@@ -1,0 +1,4 @@
+analyse O(n)  of neural  networks
+forward propagation
+back propagation
+
