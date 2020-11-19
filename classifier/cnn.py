@@ -12,6 +12,8 @@ import numpy as np
 
 from dataLoaderFile import dataLoader
 
+import torch.optim as optim
+
 data = dataLoader.main()
 
 
@@ -46,7 +48,7 @@ net = Net()
 #     print(inputPaths)
 
 # take one batch
-inputBatch = data[0]
+inputBatch = data[1]
 
 # split the batch into labels and input paths
 unzipped = [[i for i, j in inputBatch],
@@ -66,36 +68,15 @@ for i in inputPaths:
     if '.mat' in str(i):
         inputs = inputs + [returnImage(i)]
     elif '.png' in str(i):
-        inputs = inputs + [Image.open(str(i))]
+        inputs = inputs + [Image.open(str(i).lstrip("b'").rstrip("'"))]
 print(inputs)
 
-trans0 = transforms.ToPILImage()
-trans1 = transforms.ToTensor()
+trans = transforms.ToTensor()
 
-ninputs = np.asarray(inputs[0])
-# ninputs = ninputs[..., np.newaxis]
-print(ninputs.shape)
-ninputs = trans0(trans1(ninputs))
-# ninputs = ninputs.unsqueeze(0)
-print(ninputs)
-# net.forward(trans1(ninputs).squeeze(0).unsqueeze(2).unsqueeze(3))
-outputs = net(trans1(ninputs).unsqueeze(1))
+ninputs = torch.Tensor([])
+for i, d in enumerate(inputs, 0):
+     ninputs = torch.cat((ninputs, trans(d)), 0)
 
-# img = Image.open(inputPaths[3])
-# print(str(inputPaths[3]).lstrip("b'").rstrip("'"))
-
-# print(data[0][3][1])
-# img_pil = Image.open(img)
-# newimg = img.convert('RGB')
-# print(f'imagemode {img.mode} {img.getbands()} newimg {newimg.getbands()}')
-# img.show()
-# newimg.show()
-# img.save('image1.png')
-# newimg.save(f'newimage{newimg.mode}.jpeg')
-
-
-# print(net)
-# # print(group)
-# print(data)
-# tensor1 = trans(data)
-# net.forward(data)
+labels = torch.FloatTensor(labels)
+print(f'ninputs: {ninputs, ninputs.shape}')
+print(f'label: {labels}')
