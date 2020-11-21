@@ -48,7 +48,7 @@ net = Net()
 #     print(inputPaths)
 
 # take one batch
-inputBatch = data[1]
+inputBatch = data[2]
 
 # split the batch into labels and input paths
 unzipped = [[i for i, j in inputBatch],
@@ -72,11 +72,20 @@ for i in inputPaths:
 print(inputs)
 
 trans = transforms.ToTensor()
-
+nums = [0, 1, 2, 3]
 ninputs = torch.Tensor([])
-for i, d in enumerate(inputs, 0):
-     ninputs = torch.cat((ninputs, trans(d)), 0)
+
+# for i, d in enumerate(inputs, 0):
+#     ninputs = torch.cat((ninputs, trans(d)), i)
+
+print(f'1: {ninputs, inputs[0]}')
+i1 = torch.cat((ninputs, trans(inputs[0])), 0)
+print(f'2: {i1, inputs[1]}')
+i2 = torch.cat((i1, trans(inputs[1])), 0)
+print(f'3: {i2}')
 
 labels = torch.FloatTensor(labels)
-print(f'ninputs: {ninputs, ninputs.shape}')
+
+# print(f'inputs: {inputs[1]}')
+print(f'ninputs: {i2, i2.shape}')
 print(f'label: {labels}')
