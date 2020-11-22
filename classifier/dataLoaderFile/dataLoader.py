@@ -47,7 +47,7 @@ def splitLists(data):
     # for n in range(int(numOfBatches)):
     #     print(batches[n]) #print batches
     # output for testing
-    print(f'{numOfBatches} batches, {batchSize} batchsize')
+    # print(f'{numOfBatches} batches, {batchSize} batchsize')
     return (batches)
 
 

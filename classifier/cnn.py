@@ -39,53 +39,135 @@ class Net(nn.Module):
 
 net = Net()
 
-# labels = []
-# inputPaths = []
 
-
-# for i, d in enumerate(data, 0):
-#     inputPaths = d
-#     print(inputPaths)
-
-# take one batch
-inputBatch = data[2]
-
-# split the batch into labels and input paths
-unzipped = [[i for i, j in inputBatch],
-            [j for i, j in inputBatch]]
-# print(unzipped)
-
-labels, inputPaths = unzipped
-# print(f'inputs: {inputPaths} labels: {labels}')
-
-# creates new inputs list
-inputs = []
-
-# for every path in inputPaths, load the image.
-# If it is a 'no' image then it has a opens with pillow
-# Otherwise it uses the same returnImage function from matlabReader
-for i in inputPaths:
-    if '.mat' in str(i):
-        inputs = inputs + [returnImage(i)]
-    elif '.png' in str(i):
-        inputs = inputs + [Image.open(str(i).lstrip("b'").rstrip("'"))]
-print(inputs)
-
+# premade function to transform image into pytorch tensor
 trans = transforms.ToTensor()
-nums = [0, 1, 2, 3]
-ninputs = torch.Tensor([])
 
-# for i, d in enumerate(inputs, 0):
-#     ninputs = torch.cat((ninputs, trans(d)), i)
 
-print(f'1: {ninputs, inputs[0]}')
-i1 = torch.cat((ninputs, trans(inputs[0])), 0)
-print(f'2: {i1, inputs[1]}')
-i2 = torch.cat((i1, trans(inputs[1])), 0)
-print(f'3: {i2}')
+def translateBatch(newBatch):
 
-labels = torch.FloatTensor(labels)
+    # newBatch is in the form [label, image] so we need to split them up
+    # this splits the batch into labels and input paths but zipped
+    unzipped = [[i for i, j in newBatch],
+                [j for i, j in newBatch]]
 
-# print(f'inputs: {inputs[1]}')
-print(f'ninputs: {i2, i2.shape}')
-print(f'label: {labels}')
+    # splitting unzipped into labels and images
+    labels, inputPaths = unzipped
+
+    # creates new inputs list
+    batchImages = []
+
+    # for every path in inputPaths, load the image.
+    # If it is a 'no' image then it has a opens with pillow
+    # Otherwise it uses the same returnImage function from matlabReader
+    for i in inputPaths:
+        if '.mat' in str(i):
+            batchImages = batchImages + [returnImage(i)]
+        elif '.png' in str(i):
+            # path needs to be adjusted slightly to work and the image must be translated into image mode 'I' like the rest of them
+            batchImages = batchImages + [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode = 'I')]
+
+    # initialising ninputs as the first image transformed into a tensor 
+    # so that everything else can be added onto it
+    transImages = trans(batchImages[0])
+
+    # adding on the rest of the images transformed as tensors
+    # torch.cat concatenates tensors in a specified dimension
+    for i in range(1, len(batchImages)):
+        transImages = torch.cat((transImages, trans(batchImages[i])), 0)
+
+    # labels is just a list so can be made directly into a tensor
+    labels = torch.FloatTensor(labels)
+
+    # print(f'ninputs shape: {transImages.shape}')
+    # print(f'label: {labels}')
+
+    return transImages, labels
+
+
+# collate all the batches
+n, m = translateBatch(data[1])
+X = [n]
+Y = [m]
+for n in range(3):
+    x, y =  translateBatch(data[n+1])
+    X = X + [x]
+    Y = Y + [y]
+# X = torch.FloatTensor(X)
+# Y = torch.FloatTensor(Y)
+for x in range(len(y)):
+    print(Y[x])
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum=0.9)
+
+optimizer.zero_grad()
+
+net.zero_grad()
+
+# output = net(X.view(-1, 512*512))
+
+
+
+
+
+# # take one batch
+# inputBatch = data[2]
+
+# # split the batch into labels and input paths
+# unzipped = [[i for i, j in inputBatch],
+#             [j for i, j in inputBatch]]
+# # print(unzipped)
+
+# # splitting unzipped into labels and images
+# labels, inputPaths = unzipped
+# # print(f'inputs: {inputPaths} labels: {labels}')
+
+# # creates new inputs list
+# inputs = []
+
+# # for every path in inputPaths, load the image.
+# # If it is a 'no' image then it has a opens with pillow
+# # Otherwise it uses the same returnImage function from matlabReader
+# for i in inputPaths:
+#     if '.mat' in str(i):
+#         inputs = inputs + [returnImage(i)]
+#     elif '.png' in str(i):
+#         inputs = inputs + [Image.open(str(i).lstrip("b'").rstrip("'"))]
+# print(inputs)
+
+
+
+# # initialising ninputs as the first image transformed into a tensor so that everything else can be added onto it
+# ninputs = trans(inputs[0])
+
+# # print(f'1: {ninputs.shape, inputs[1]}')
+# # i1 = torch.cat((ninputs, trans(inputs[0])), 0)
+# # print(f'2: {i1.shape, inputs[2]}')
+# # i2 = torch.cat((i1, trans(inputs[2])), 0)
+# # print(f'1: {i2.shape, inputs[3]}')
+# # i3 = torch.cat((i2, trans(inputs[3])), 0)
+# # print(f'2: {i3.shape}')
+
+# # print(f'0 {ninputs}')
+
+# # adding on the rest of the images transformed as tensors
+# # torch.cat concatenates tensors in a specified dimension
+# for i in range(1, len(inputs)):
+#     ninputs = torch.cat((ninputs, trans(inputs[i])), 0)
+#     print(f'{i} ', inputs[i])
+
+# print(f'ninputs shape: {ninputs.shape}')
+
+# # labels is just a list so can be made directly into a tensor
+# labels = torch.FloatTensor(labels)
+
+# # print(ninputs, i3,torch.sub(ninputs, i3), trans(inputs))
+# # print(f'inputs: {inputs[1]}')
+# # print(f'ninputs: {i2, i2.shape}')
+# print(f'label: {labels}')
+
+
+
+# # outputs = net(ninputs.view(-1, 512*512))
+# # print(outputs)
