@@ -1,0 +1,4 @@
+Torch
+
+Conv2d(input channels, output channels, kernel size[tuple], stride)
+tensor(number of inputs?, channels, x, y)

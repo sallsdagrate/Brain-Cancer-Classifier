@@ -14,6 +14,8 @@ from dataLoaderFile import dataLoader
 
 import torch.optim as optim
 
+from tqdm import tqdm
+
 data = dataLoader.main()
 
 
@@ -21,23 +23,34 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(16 * 125 * 125, 120)
+        self.fc2 = nn.Linear(120, 60)
+        self.fc3 = nn.Linear(60, 4)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        # print(x[0].shape)
+        x = x.view(-1, 16 * 125 * 125)
+        # print(x[0].shape)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
-        return x
+        return F.softmax(x, dim=1)
 
 
 net = Net()
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum=0.9)
+
+optimizer.zero_grad()
+
+net.zero_grad()
+
+net = net.double()
 
 
 # premade function to transform image into pytorch tensor
@@ -82,32 +95,76 @@ def translateBatch(newBatch):
     # print(f'ninputs shape: {transImages.shape}')
     # print(f'label: {labels}')
 
-    return transImages, labels
-
+    return transImages.unsqueeze(1).double(), labels
 
 # collate all the batches
-n, m = translateBatch(data[1])
-X = [n]
-Y = [m]
-for n in range(3):
-    x, y =  translateBatch(data[n+1])
-    X = X + [x]
-    Y = Y + [y]
-# X = torch.FloatTensor(X)
-# Y = torch.FloatTensor(Y)
-for x in range(len(y)):
-    print(Y[x])
+def loadBatches(numOfBatches, start = 0):
+    x = []
+    y = []
+    for i in range(start, start + numOfBatches - 1):
+        n, m = translateBatch(data[i])
+        x = x + [n]
+        y = y + [m.type(torch.LongTensor) - 1]
+    return x, y
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum=0.9)
-
-optimizer.zero_grad()
-
-net.zero_grad()
-
-# output = net(X.view(-1, 512*512))
+numOfBatches = 20
+X, Y = loadBatches(numOfBatches)
 
 
+EPOCHS = 1
+for epoch in range (EPOCHS):
+    for i in tqdm(range(len(X)+1)):
+        batch_X = X[i-1]
+        batch_Y = Y[i-1]
+        
+
+        net.zero_grad()
+        outputs = net(batch_X)
+        loss = criterion(outputs, batch_Y)
+        loss.backward()
+        optimizer.step()
+print(loss)
+
+correct = 0
+total = 0
+test_X, test_Y = loadBatches(5, 20)
+with torch.no_grad():
+    for i in tqdm(range(len(test_X))):
+        real_class = torch.argmax(test_Y[i])
+        net_out = net(test_X[i])
+        print(real_class, net_out)
+        predicted_class = torch.argmax(net_out)
+        if predicted_class == real_class:
+            correct += 1
+        total += 1
+print('Accuracy: ', round(correct/total, 3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# output = net(n)
+# print(output.shape)
+# print(net)
+
+# .view(-1, 512*512)
 
 
 
