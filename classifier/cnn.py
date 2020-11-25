@@ -131,16 +131,16 @@ EPOCHS = 1
 correct = 0
 total = 0
 test_X, test_Y = loadBatches(4, 20)
-print(test_Y[0])
-print(test_X[0])
-out = net(test_X[0])
-print(out)
-# with torch.no_grad():
-#     for i in tqdm(range(len(test_X))):
-#         real_class = torch.argmax(test_Y)
-#         net_out = net(test_X[i])
-#         print(real_class, net_out)
-# predicted_class = torch.argmax(net_out)
+# print(test_Y[0])
+# print(test_X[0])
+# out = net(test_X[0])
+# print(out)
+with torch.no_grad():
+    for i in tqdm(range(len(test_X))):
+        # real_class = torch.argmax(test_Y)
+        net_out = net(test_X[i])
+        print(test_Y[i], net_out)
+predicted_class = torch.argmax(net_out)
 # if predicted_class == real_class:
 #     correct += 1
 # total += 1
