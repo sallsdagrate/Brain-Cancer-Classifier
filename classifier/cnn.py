@@ -44,7 +44,7 @@ class Net(nn.Module):
 net = Net()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 optimizer.zero_grad()
 
@@ -78,9 +78,10 @@ def translateBatch(newBatch):
             batchImages = batchImages + [returnImage(i)]
         elif '.png' in str(i):
             # path needs to be adjusted slightly to work and the image must be translated into image mode 'I' like the rest of them
-            batchImages = batchImages + [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode = 'I')]
+            batchImages = batchImages + \
+                [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode='I')]
 
-    # initialising ninputs as the first image transformed into a tensor 
+    # initialising ninputs as the first image transformed into a tensor
     # so that everything else can be added onto it
     transImages = trans(batchImages[0])
 
@@ -98,66 +99,52 @@ def translateBatch(newBatch):
     return transImages.unsqueeze(1).double(), labels
 
 # collate all the batches
-def loadBatches(numOfBatches, start = 0):
+
+
+def loadBatches(numOfBatches, start=0):
     x = []
     y = []
     for i in range(start, start + numOfBatches - 1):
         n, m = translateBatch(data[i])
         x = x + [n]
-        y = y + [m.type(torch.LongTensor) - 1]
+        y = y + [m.long() - 1]
     return x, y
 
-numOfBatches = 20
-X, Y = loadBatches(numOfBatches)
+
+numOfBatches = 3
+X, Y = loadBatches(numOfBatches, 4)
 
 
 EPOCHS = 1
-for epoch in range (EPOCHS):
-    for i in tqdm(range(len(X)+1)):
-        batch_X = X[i-1]
-        batch_Y = Y[i-1]
-        
+# for epoch in range(EPOCHS):
+#     for i in tqdm(range(len(X)+1)):
+#         batch_X = X[i-1]
+#         batch_Y = Y[i-1]
 
-        net.zero_grad()
-        outputs = net(batch_X)
-        loss = criterion(outputs, batch_Y)
-        loss.backward()
-        optimizer.step()
-print(loss)
+#         net.zero_grad()
+#         outputs = net(batch_X)
+#         loss = criterion(outputs, batch_Y)
+#         loss.backward()
+#         optimizer.step()
+# print(loss)
 
 correct = 0
 total = 0
-test_X, test_Y = loadBatches(5, 20)
-with torch.no_grad():
-    for i in tqdm(range(len(test_X))):
-        real_class = torch.argmax(test_Y[i])
-        net_out = net(test_X[i])
-        print(real_class, net_out)
-        predicted_class = torch.argmax(net_out)
-        if predicted_class == real_class:
-            correct += 1
-        total += 1
-print('Accuracy: ', round(correct/total, 3))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+test_X, test_Y = loadBatches(4, 20)
+print(test_Y[0])
+print(test_X[0])
+out = net(test_X[0])
+print(out)
+# with torch.no_grad():
+#     for i in tqdm(range(len(test_X))):
+#         real_class = torch.argmax(test_Y)
+#         net_out = net(test_X[i])
+#         print(real_class, net_out)
+# predicted_class = torch.argmax(net_out)
+# if predicted_class == real_class:
+#     correct += 1
+# total += 1
+# print('Accuracy: ', round(correct/total, 3))
 
 
 # output = net(n)
@@ -165,7 +152,6 @@ print('Accuracy: ', round(correct/total, 3))
 # print(net)
 
 # .view(-1, 512*512)
-
 
 
 # # take one batch
@@ -192,7 +178,6 @@ print('Accuracy: ', round(correct/total, 3))
 #     elif '.png' in str(i):
 #         inputs = inputs + [Image.open(str(i).lstrip("b'").rstrip("'"))]
 # print(inputs)
-
 
 
 # # initialising ninputs as the first image transformed into a tensor so that everything else can be added onto it
@@ -223,7 +208,6 @@ print('Accuracy: ', round(correct/total, 3))
 # # print(f'inputs: {inputs[1]}')
 # # print(f'ninputs: {i2, i2.shape}')
 # print(f'label: {labels}')
-
 
 
 # # outputs = net(ninputs.view(-1, 512*512))
