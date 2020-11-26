@@ -19,21 +19,33 @@ from tqdm import tqdm
 
 data = dataLoader.main()
 
+# defining network class and passing in nn.Module, a package that includes all the neural network functionality
+
 
 class Net(nn.Module):
+    # constructor
     def __init__(self):
+        # immediately call the super class
         super(Net, self).__init__()
+        # define network layers
+        # 2d convolutional layers (input channels, output channels, kernel size)
         self.conv1 = nn.Conv2d(1, 6, 5)
         self.conv2 = nn.Conv2d(6, 16, 5)
+        # Pooling layer (kernel size, step)
         self.pool = nn.MaxPool2d(2, 2)
+        # linear layers (input features, output features)
         self.fc1 = nn.Linear(16 * 125 * 125, 120)
         self.fc2 = nn.Linear(120, 60)
         self.fc3 = nn.Linear(60, 4)
+        # ends with 4 features, one for each type of cancer and one for 'no'
 
+    # forward propagation function
     def forward(self, x):
+        # pass through layer, rectified linear function and pool all at once
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         # print(x[0].shape)
+        # transform into linear form
         x = x.view(-1, 16 * 125 * 125)
         # print(x[0].shape)
         x = F.relu(self.fc1(x))
@@ -42,15 +54,18 @@ class Net(nn.Module):
         return F.softmax(x, dim=1)
 
 
+# instantiate network
 net = Net()
 
+# define loss function and optimiser, will be useful later
 loss = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
+# zero the gradient
 optimizer.zero_grad()
-
 net.zero_grad()
 
+# transformt the network into datatype double so that it is consistent with the data
 net = net.double()
 
 
@@ -103,57 +118,83 @@ def translateBatch(newBatch):
 
 
 def loadBatches(numOfBatches, start=0):
+    # initialise a list of x (inputs) and y (expected output)
     x = []
     y = []
+    # iterated through the data for a specified number of batches from either the 0th index or from a specified index
     for i in range(start, start + numOfBatches):
+        # return a batch
         n, m = translateBatch(data[i])
+        # add the batch to the existing list of batches of batches
         x = x + [n]
+        # output batches need to be made into a datatype 'long tensor' as this is what the loss function expects
+        # also every value in the output needs to be shifted by 1 in order to account for the 0th index
+        # pytorch treats the first index as 0 but we started from 1 in our data for ease of understanding
         y = y + [m.long() - 1]
     return x, y
 
 
-numOfBatches = 15
-X, Y = loadBatches(numOfBatches)
+numOfBatches = 5
+X, Y = loadBatches(numOfBatches, 10)
+# print(Y, len(Y))
 
-
-EPOCHS = 2
+# Epochs are the number of large loops through the data you do
+EPOCHS = 1
 for epoch in range(EPOCHS):
+    # for every colllection of batches
     for i in tqdm(range(len(X))):
+        # take the current batch
         batch_X = X[i]
         batch_Y = Y[i]
 
+        # zero the gradients
         net.zero_grad()
+        # push through the network
         outputs = net(batch_X)
 
+        # print(outputs.shape)
+        # print(outputs)
+
+        # Calculate loss
         # lossAcc = loss accumulator
         lossAcc = loss(outputs, batch_Y)
+
         print(outputs, batch_Y, lossAcc)
 
+        # back propagate
         lossAcc.backward()
+        # step down the loss function
         optimizer.step()
-# print(loss)
 
+
+# initialise the statistics as 0
 correct = 0
 total = 0
+# test the network on the last 5 batches in the data
 test_X, test_Y = loadBatches(5, len(data) - 5)
-# print(test_Y[0])
-# print(test_X[0])
-# out = net(test_X[0])
-# print(out)
-# print(len(test_Y))
-# print(len(test_X))
+
+# no gradients need to be calculated for the verification process
 with torch.no_grad():
+    # for each batch in the test data
     for i in tqdm(range(len(test_X))):
+        # push test data through the network
         net_out = net(test_X[i])
+        # for every image
         for x in range(len(test_Y[i])):
+
             real_class = test_Y[i][x]
-            print(test_Y[i][x], net_out[x])
+            print(net_out[x])
+            # take the highest probability in the output
             predicted_class = torch.argmax(net_out[x])
-            print(predicted_class)
+            print(predicted_class, test_Y[i][x])
+            # check if output class matches the real class
             if predicted_class == real_class:
+                # increment correct if it matches
                 correct += 1
+            # increment total
             total += 1
 print(correct, total)
+# output accuracy percentage to 3sf
 print('Accuracy: ', round(correct/total, 3))
 
 
