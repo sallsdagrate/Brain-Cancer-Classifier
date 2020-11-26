@@ -30,14 +30,14 @@ def splitLists(data):
     # repeat until batch size is a factor or data list size
     # fact = False
     # while fact == False:
-        # batchSize = 0
-        # while batchSize < 1:
-        #     batchSize = int(input('enter batch size: '))
-        # print(len(data) % batchSize)
+    # batchSize = 0
+    # while batchSize < 1:
+    #     batchSize = int(input('enter batch size: '))
+    # print(len(data) % batchSize)
 
-        # if len(data) % batchSize == 0:
-        #     print('true')
-        #     fact = True
+    # if len(data) % batchSize == 0:
+    #     print('true')
+    #     fact = True
     batchSize = 4
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
@@ -47,7 +47,7 @@ def splitLists(data):
     # for n in range(int(numOfBatches)):
     #     print(batches[n]) #print batches
     # output for testing
-    # print(f'{numOfBatches} batches, {batchSize} batchsize')
+    print(f'{numOfBatches} batches, {batchSize} batchsize')
     return (batches)
 
 

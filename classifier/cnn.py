@@ -16,6 +16,7 @@ import torch.optim as optim
 
 from tqdm import tqdm
 
+
 data = dataLoader.main()
 
 
@@ -43,7 +44,7 @@ class Net(nn.Module):
 
 net = Net()
 
-criterion = nn.CrossEntropyLoss()
+loss = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 optimizer.zero_grad()
@@ -98,56 +99,62 @@ def translateBatch(newBatch):
 
     return transImages.unsqueeze(1).double(), labels
 
-# collate all the batches
+# function to return a specified number of batches with the option of starting at a certain index
 
 
 def loadBatches(numOfBatches, start=0):
     x = []
     y = []
-    for i in range(start, start + numOfBatches - 1):
+    for i in range(start, start + numOfBatches):
         n, m = translateBatch(data[i])
         x = x + [n]
         y = y + [m.long() - 1]
     return x, y
 
 
-numOfBatches = 3
-X, Y = loadBatches(numOfBatches, 4)
+numOfBatches = 15
+X, Y = loadBatches(numOfBatches)
 
 
-EPOCHS = 1
-# for epoch in range(EPOCHS):
-#     for i in tqdm(range(len(X)+1)):
-#         batch_X = X[i-1]
-#         batch_Y = Y[i-1]
+EPOCHS = 2
+for epoch in range(EPOCHS):
+    for i in tqdm(range(len(X))):
+        batch_X = X[i]
+        batch_Y = Y[i]
 
-#         net.zero_grad()
-#         outputs = net(batch_X)
-#         loss = criterion(outputs, batch_Y)
-#         loss.backward()
-#         optimizer.step()
+        net.zero_grad()
+        outputs = net(batch_X)
+
+        # lossAcc = loss accumulator
+        lossAcc = loss(outputs, batch_Y)
+        print(outputs, batch_Y, lossAcc)
+
+        lossAcc.backward()
+        optimizer.step()
 # print(loss)
 
 correct = 0
 total = 0
-test_X, test_Y = loadBatches(5, 20)
+test_X, test_Y = loadBatches(5, len(data) - 5)
 # print(test_Y[0])
 # print(test_X[0])
 # out = net(test_X[0])
 # print(out)
-print(len(test_Y))
-print(len(test_X))
+# print(len(test_Y))
+# print(len(test_X))
 with torch.no_grad():
     for i in tqdm(range(len(test_X))):
-        # real_class = torch.argmax(test_Y)
         net_out = net(test_X[i])
-        print(test_Y[i])
-
-# predicted_class = torch.argmax(net_out)
-# if predicted_class == real_class:
-#     correct += 1
-# total += 1
-# print('Accuracy: ', round(correct/total, 3))
+        for x in range(len(test_Y[i])):
+            real_class = test_Y[i][x]
+            print(test_Y[i][x], net_out[x])
+            predicted_class = torch.argmax(net_out[x])
+            print(predicted_class)
+            if predicted_class == real_class:
+                correct += 1
+            total += 1
+print(correct, total)
+print('Accuracy: ', round(correct/total, 3))
 
 
 # output = net(n)
