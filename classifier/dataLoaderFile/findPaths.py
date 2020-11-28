@@ -1,9 +1,9 @@
 import os
 import h5py
 import numpy as np
-# from matlabReader import returnLabel  # reusing the same function to find label
+from matlabReader import returnLabel  # reusing the same function to find label
 
-from dataLoaderFile.matlabReader import returnLabel
+# from dataLoaderFile.matlabReader import returnLabel
 
 directory = 'classifier/dataLoaderFile/NEA_data/extracted/'  # define directory
 

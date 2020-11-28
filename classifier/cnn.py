@@ -94,16 +94,16 @@ def translateBatch(newBatch):
             batchImages = batchImages + [returnImage(i)]
         elif '.png' in str(i):
             # path needs to be adjusted slightly to work and the image must be translated into image mode 'I' like the rest of them
-            batchImages = batchImages + \
-                [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode='I')]
+            batchImages = batchImages + [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode='I')]
 
     # initialising ninputs as the first image transformed into a tensor
     # so that everything else can be added onto it
     transImages = trans(batchImages[0])
-
+    
     # adding on the rest of the images transformed as tensors
     # torch.cat concatenates tensors in a specified dimension
     for i in range(1, len(batchImages)):
+        print(transImages.shape, trans(batchImages[0]).shape)
         transImages = torch.cat((transImages, trans(batchImages[i])), 0)
 
     # labels is just a list so can be made directly into a tensor
@@ -114,8 +114,8 @@ def translateBatch(newBatch):
 
     return transImages.unsqueeze(1).double(), labels
 
-# function to return a specified number of batches with the option of starting at a certain index
 
+# function to return a specified number of batches with the option of starting at a certain index
 
 def loadBatches(numOfBatches, start=0):
     # initialise a list of x (inputs) and y (expected output)
@@ -134,70 +134,81 @@ def loadBatches(numOfBatches, start=0):
     return x, y
 
 
-numOfBatches = 5
-X, Y = loadBatches(numOfBatches, 10)
-# print(Y, len(Y))
 
-# Epochs are the number of large loops through the data you do
-EPOCHS = 1
-for epoch in range(EPOCHS):
-    # for every colllection of batches
-    for i in tqdm(range(len(X))):
-        # take the current batch
-        batch_X = X[i]
-        batch_Y = Y[i]
+def train(X, Y):
+    # Epochs are the number of large loops through the data you do
+    EPOCHS = 1
+    for epoch in range(EPOCHS):
+        # for every colllection of batches
+        for i in tqdm(range(len(X))):
+            # take the current batch
+            batch_X = X[i]
+            batch_Y = Y[i]
 
-        # zero the gradients
-        net.zero_grad()
-        # push through the network
-        outputs = net(batch_X)
+            # zero the gradients
+            net.zero_grad()
+            # push through the network
+            outputs = net(batch_X)
 
-        # print(outputs.shape)
-        # print(outputs)
+            # print(outputs.shape)
+            # print(outputs)
 
-        # Calculate loss
-        # lossAcc = loss accumulator
-        lossAcc = loss(outputs, batch_Y)
+            # Calculate loss
+            # lossAcc = loss accumulator
+            lossAcc = loss(outputs, batch_Y)
 
-        print(outputs, batch_Y, lossAcc)
+            print(outputs, batch_Y, lossAcc)
 
-        # back propagate
-        lossAcc.backward()
-        # step down the loss function
-        optimizer.step()
+            # back propagate
+            lossAcc.backward()
+            # step down the loss function
+            optimizer.step()
 
 
-# initialise the statistics as 0
-correct = 0
-total = 0
-# test the network on the last 5 batches in the data
-test_X, test_Y = loadBatches(5, len(data) - 5)
+def test(test_X, test_Y):
+    # initialise the statistics as 0
+    correct = 0
+    total = 0
+    # no gradients need to be calculated for the verification process
+    with torch.no_grad():
+        # for each batch in the test data
+        for i in tqdm(range(len(test_X))):
+            # push test data through the network
+            net_out = net(test_X[i])
+            # for every image
+            for x in range(len(test_Y[i])):
 
-# no gradients need to be calculated for the verification process
-with torch.no_grad():
-    # for each batch in the test data
-    for i in tqdm(range(len(test_X))):
-        # push test data through the network
-        net_out = net(test_X[i])
-        # for every image
-        for x in range(len(test_Y[i])):
-
-            real_class = test_Y[i][x]
-            print(net_out[x])
-            # take the highest probability in the output
-            predicted_class = torch.argmax(net_out[x])
-            print(predicted_class, test_Y[i][x])
-            # check if output class matches the real class
-            if predicted_class == real_class:
-                # increment correct if it matches
-                correct += 1
-            # increment total
-            total += 1
-print(correct, total)
-# output accuracy percentage to 3sf
-print('Accuracy: ', round(correct/total, 3))
+                real_class = test_Y[i][x]
+                print(net_out[x])
+                # take the highest probability in the output
+                predicted_class = torch.argmax(net_out[x])
+                print(predicted_class, test_Y[i][x])
+                # check if output class matches the real class
+                if predicted_class == real_class:
+                    # increment correct if it matches
+                    correct += 1
+                # increment total
+                total += 1
+    print(correct, total)
+    # output accuracy percentage to 3sf
+    print('Accuracy: ', round(correct/total, 3))
 
 
+def main():
+
+    numOfBatches = 30
+    # X, Y = loadBatches(numOfBatches)
+    # train(X, Y)
+    # print(Y, len(Y))
+    
+    # test the network on the last 5 batches in the data
+    test_X, test_Y = loadBatches(5, start=len(data)-6)
+    # test(test_X, test_Y)
+    # for x in data:
+    #     for y in x:
+    #         print(y)
+
+main()
 # output = net(n)
 # print(output.shape)
 # print(net)

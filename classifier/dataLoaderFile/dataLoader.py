@@ -4,11 +4,12 @@
 # import randomSelector
 from numpy import genfromtxt
 
-from dataLoaderFile import matlabReader
-from dataLoaderFile import normaliseNo
-from dataLoaderFile import findPaths
-from dataLoaderFile import randomSelector
+# from dataLoaderFile import matlabReader
+# from dataLoaderFile import normaliseNo
+# from dataLoaderFile import findPaths
+# from dataLoaderFile import randomSelector
 
+# from . import matlabReader
 
 # normalise
 # find paths of all images
@@ -38,7 +39,7 @@ def splitLists(data):
     # if len(data) % batchSize == 0:
     #     print('true')
     #     fact = True
-    batchSize = 4
+    batchSize = 10
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
     # split data into batches
@@ -59,7 +60,7 @@ def main():
     return(splitLists(data))
 
 
-main()
+# main()
 
 
 def test():
