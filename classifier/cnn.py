@@ -29,12 +29,13 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # define network layers
         # 2d convolutional layers (input channels, output channels, kernel size)
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.conv1 = nn.Conv2d(1, 3, 5)
+        self.conv2 = nn.Conv2d(3, 5, 5)
+        self.conv3 = nn.Conv2d(5, 5, 2)
         # Pooling layer (kernel size, step)
         self.pool = nn.MaxPool2d(2, 2)
         # linear layers (input features, output features)
-        self.fc1 = nn.Linear(16 * 125 * 125, 120)
+        self.fc1 = nn.Linear(5 * 62 * 62, 120)
         self.fc2 = nn.Linear(120, 60)
         self.fc3 = nn.Linear(60, 4)
         # ends with 4 features, one for each type of cancer and one for 'no'
@@ -44,13 +45,15 @@ class Net(nn.Module):
         # pass through layer, rectified linear function and pool all at once
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
         # print(x[0].shape)
         # transform into linear form
-        x = x.view(-1, 16 * 125 * 125)
+        x = x.view(-1, 5 * 62 * 62)
         # print(x[0].shape)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        # return x
         return F.softmax(x, dim=1)
 
 
@@ -59,7 +62,7 @@ net = Net()
 
 # define loss function and optimiser, will be useful later
 loss = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.2)
 
 # zero the gradient
 optimizer.zero_grad()
@@ -99,12 +102,19 @@ def translateBatch(newBatch):
     # initialising ninputs as the first image transformed into a tensor
     # so that everything else can be added onto it
     transImages = trans(batchImages[0])
-    
+    # batchImages[0].show()
     # adding on the rest of the images transformed as tensors
     # torch.cat concatenates tensors in a specified dimension
     for i in range(1, len(batchImages)):
-        print(transImages.shape, trans(batchImages[0]).shape)
-        transImages = torch.cat((transImages, trans(batchImages[i])), 0)
+        img = batchImages[i]
+        # print(img.size)
+        # resize images if they are not 512x512
+        if img.size != (512, 512):
+            # print('resized')
+            img = img.resize((512, 512))
+            # print(img.size)
+        # print(transImages.shape, trans(img).shape)
+        transImages = torch.cat((transImages, trans(img)), 0)
 
     # labels is just a list so can be made directly into a tensor
     labels = torch.FloatTensor(labels)
@@ -137,7 +147,7 @@ def loadBatches(numOfBatches, start=0):
 
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 1
+    EPOCHS = 100
     for epoch in range(EPOCHS):
         # for every colllection of batches
         for i in tqdm(range(len(X))):
@@ -146,7 +156,7 @@ def train(X, Y):
             batch_Y = Y[i]
 
             # zero the gradients
-            net.zero_grad()
+            # net.zero_grad()
             # push through the network
             outputs = net(batch_X)
 
@@ -157,11 +167,14 @@ def train(X, Y):
             # lossAcc = loss accumulator
             lossAcc = loss(outputs, batch_Y)
 
-            print(outputs, batch_Y, lossAcc)
+            # print(outputs, batch_Y, lossAcc)
+            print(lossAcc)
 
             # back propagate
+            optimizer.zero_grad()
             lossAcc.backward()
             # step down the loss function
+
             optimizer.step()
 
 
@@ -179,10 +192,10 @@ def test(test_X, test_Y):
             for x in range(len(test_Y[i])):
 
                 real_class = test_Y[i][x]
-                print(net_out[x])
+                # print(net_out[x])
                 # take the highest probability in the output
                 predicted_class = torch.argmax(net_out[x])
-                print(predicted_class, test_Y[i][x])
+                print(f'predicted: {predicted_class}, real: {test_Y[i][x]}')
                 # check if output class matches the real class
                 if predicted_class == real_class:
                     # increment correct if it matches
@@ -202,11 +215,15 @@ def main():
     # print(Y, len(Y))
     
     # test the network on the last 5 batches in the data
-    test_X, test_Y = loadBatches(5, start=len(data)-6)
+    # test_X, test_Y = loadBatches(5, start = 30)
+    # print(len(data))
     # test(test_X, test_Y)
     # for x in data:
     #     for y in x:
     #         print(y)
+
+    X, Y = loadBatches(1)
+    train(X, Y)
 
 main()
 # output = net(n)
