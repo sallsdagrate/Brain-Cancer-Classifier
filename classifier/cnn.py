@@ -225,7 +225,7 @@ def main():
     X, Y = loadBatches(1)
     train(X, Y)
 
-main()
+# main()
 # output = net(n)
 # print(output.shape)
 # print(net)

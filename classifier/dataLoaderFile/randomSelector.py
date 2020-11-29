@@ -36,4 +36,4 @@ def main():
             file.write(str(randint) + ',' + line + '\n')
     file.close()  # close file
 
-# main()
+main()
