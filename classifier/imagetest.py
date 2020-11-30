@@ -29,26 +29,28 @@ data = dataLoader.loadLists()
 unzipped = [[i for i, j in data],
                 [j for i, j in data]]
 # print(unzipped[1])
-# count = 0
+count = 0
 for x in unzipped[1]:
     
     if '.mat' in str(x):
         img = matlabReader.returnImage(x)
         filename = 'classifier/dataLoaderFile/NEA_data/extracted/skimages/' + str(x).lstrip("b'classifier/dataLoaderFile/NEA_data/extracted/").rstrip(".mat'") + ".jpg"
+        count+=1
     elif '.png' in str(x):
         # path needs to be adjusted slightly to work and the image must be translated into image mode 'I' like the rest of them
+        count+=1
         img = Image.open(str(x).lstrip("b'").rstrip("'")).convert(mode='I')
         filename = 'classifier/dataLoaderFile/NEA_data/extracted/skimages/' + str(x).lstrip("b'classifier/dataLoaderFile/NEA_data/extracted/mages/nomodified/").rstrip(".png'") + ".jpg"
     
     image = asarray(img)
-    edges = filters.sobel(image)
-    edgefilename = filename + 'edges/'
+    # edges = filters.sobel(image)
+    # edgefilename = filename + 'edges/'
     plt.imsave(filename, image)
-    plt.imsave(edgefilename, edges)
-    # count+=1
-    print(x)
+    # plt.imsave(edgefilename, edges)
+    
+    print(filename)
 
-# print(count)
+print(count)
 
 # pixels = list(img.getdata())
 # print(pixels)

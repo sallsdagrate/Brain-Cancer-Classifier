@@ -16,6 +16,7 @@ import torch.optim as optim
 
 from tqdm import tqdm
 
+import os
 
 data = dataLoader.main()
 
@@ -207,6 +208,19 @@ def test(test_X, test_Y):
     print('Accuracy: ', round(correct/total, 3))
 
 
+def loadSkimages():
+    filepath = 'classifier/dataLoaderFile/NEA_data/extracted/skimages'
+    x = []
+    for filename in os.listdir(filepath):
+        if filename.endswith('.jpg'):
+            print(filename)
+            x = x + [trans(Image.open(filepath + '/' + filename))]
+    # img = Image.open('classifier/dataLoaderFile/NEA_data/extracted/skimages/2no.jpg')
+    # img.show()
+    # print(img)
+    print(len(x))
+
+
 def main():
 
     numOfBatches = 30
@@ -222,10 +236,11 @@ def main():
     #     for y in x:
     #         print(y)
 
-    X, Y = loadBatches(1)
-    train(X, Y)
+    # X, Y = loadBatches(1)
+    # train(X, Y)
+    loadSkimages()
 
-# main()
+main()
 # output = net(n)
 # print(output.shape)
 # print(net)
