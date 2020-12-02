@@ -29,7 +29,7 @@ def extractImage(filename, filePath):
 
     print(imagePath)
 
-def returnLabel(filename, filePath):
+def returnLabel(filePath):
     readFile = h5py.File(filePath, 'r') #open in read mode
     fileData = readFile['cjdata']
 
@@ -46,7 +46,7 @@ def extractLabel(filename, filePath):
     
     labelsFile.close() #closes file
 
-def returnBorder(filename, filePath):
+def returnBorder(filePath):
     readFile = h5py.File(filePath, 'r') #open in read mode
     fileData = readFile['cjdata']
     newBorder = np.array(fileData['tumorBorder'])
@@ -58,7 +58,7 @@ def extractBorder(filename, filePath):
     print(imageOut)
     savetxt(directory + 'borders/'+ filename.replace('.mat', '') + 'border' + '.csv', imageOut, delimiter=',')
 
-def returnMask(filename, filePath):
+def returnMask(filePath):
     readFile = h5py.File(filePath, 'r') #open in read mode
     fileData = readFile['cjdata']
     newMask = np.array(fileData['tumorMask'])

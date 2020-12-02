@@ -211,20 +211,49 @@ def test(test_X, test_Y):
 def loadSkimages():
     filepath = 'classifier/dataLoaderFile/NEA_data/extracted/skimages'
     x = []
+    y = []
     for filename in os.listdir(filepath):
-        if filename.endswith('.jpg'):
-            print(filename)
-            x = x + [trans(Image.open(filepath + '/' + filename))]
+        if not('.txt' in filename):
+            fullpath = filepath + '/' + str(filename) + '/'
+            for attribute in os.listdir(fullpath):
+                # print(attribute)
+                if attribute == filename + '.jpg':
+                    img = Image.open(fullpath + '/' + attribute)
+                    x = x + [trans(img)]
+                if attribute == filename + 'result.txt':
+                    file = open(fullpath + '/' + attribute)
+                    y = y + [int(float(file.read()))]
+                    file.close()
     # img = Image.open('classifier/dataLoaderFile/NEA_data/extracted/skimages/2no.jpg')
     # img.show()
     # print(img)
     print(len(x))
+    # print(y)
+    return(x, y)
 
+# def returnskiBatch(start):
+
+
+def loadskiBatches(skidata, numOfBatches, batchSize, start = 0, labels = 'normal'):
+    # i = start
+    batches = [skidata[batchSize*i:batchSize*(i+1)]
+            for i in range(int(numOfBatches))]
+    if labels == 'labels':
+        # print(labels)
+        for x in range(len(batches)):
+            batches[x] = torch.Tensor(batches[x])
+
+    return(batches)
+
+
+# hyperparameters
+numOfBatches = 2
+batchSize = 5
 
 def main():
-
-    numOfBatches = 30
-    # X, Y = loadBatches(numOfBatches)
+    
+    X, Y = loadBatches(numOfBatches)
+    print(X, Y)
     # train(X, Y)
     # print(Y, len(Y))
     
@@ -238,7 +267,16 @@ def main():
 
     # X, Y = loadBatches(1)
     # train(X, Y)
-    loadSkimages()
+
+    # skimages
+    x, y = loadSkimages()
+    
+    X = loadskiBatches(x, numOfBatches, batchSize)
+    Y = loadskiBatches(y, numOfBatches, batchSize, labels = 'labels')
+    # print(y)
+    print(X, Y)
+    train(X, Y)
+
 
 main()
 # output = net(n)
