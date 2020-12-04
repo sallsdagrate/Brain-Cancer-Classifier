@@ -30,7 +30,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # define network layers
         # 2d convolutional layers (input channels, output channels, kernel size)
-        self.conv1 = nn.Conv2d(1, 3, 5)
+        self.conv1 = nn.Conv2d(3, 3, 5)
         self.conv2 = nn.Conv2d(3, 5, 5)
         self.conv3 = nn.Conv2d(5, 5, 2)
         # Pooling layer (kernel size, step)
@@ -63,14 +63,15 @@ net = Net()
 
 # define loss function and optimiser, will be useful later
 loss = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.2)
+optimizer = optim.SGD(net.parameters(), lr=0.001)
 
 # zero the gradient
 optimizer.zero_grad()
 net.zero_grad()
 
 # transformt the network into datatype double so that it is consistent with the data
-net = net.double()
+net = net.float()
+# net = net.double()
 
 
 # premade function to transform image into pytorch tensor
@@ -136,6 +137,7 @@ def loadBatches(numOfBatches, start=0):
     for i in range(start, start + numOfBatches):
         # return a batch
         n, m = translateBatch(data[i])
+        print(m)
         # add the batch to the existing list of batches of batches
         x = x + [n]
         # output batches need to be made into a datatype 'long tensor' as this is what the loss function expects
@@ -148,10 +150,12 @@ def loadBatches(numOfBatches, start=0):
 
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 100
+    EPOCHS = 2000
     for epoch in range(EPOCHS):
         # for every colllection of batches
-        for i in tqdm(range(len(X))):
+        # for i in tqdm(range(len(X))):
+        # print(epoch)
+        for i in range(len(X)):
             # take the current batch
             batch_X = X[i]
             batch_Y = Y[i]
@@ -169,7 +173,7 @@ def train(X, Y):
             lossAcc = loss(outputs, batch_Y)
 
             # print(outputs, batch_Y, lossAcc)
-            print(lossAcc)
+            # print(lossAcc)
 
             # back propagate
             optimizer.zero_grad()
@@ -177,7 +181,9 @@ def train(X, Y):
             # step down the loss function
 
             optimizer.step()
-
+        if epoch%100 == 0:
+            print(epoch, lossAcc)
+    print('999', lossAcc)
 
 def test(test_X, test_Y):
     # initialise the statistics as 0
@@ -206,7 +212,6 @@ def test(test_X, test_Y):
     print(correct, total)
     # output accuracy percentage to 3sf
     print('Accuracy: ', round(correct/total, 3))
-
 
 def loadSkimages():
     filepath = 'classifier/dataLoaderFile/NEA_data/extracted/skimages'
@@ -241,19 +246,30 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start = 0, labels = 'normal
     if labels == 'labels':
         # print(labels)
         for x in range(len(batches)):
-            batches[x] = torch.Tensor(batches[x])
+            batches[x] = torch.Tensor(batches[x]).long() - 1
+    if labels == "images":
+        for x in range(len(batches)):
+            concatenated = (batches[x][0].unsqueeze(0))
+            # print(concatenated.shape)
+            for y in range(1, len(batches[x])):
+                # print(y)
+                # print(batches[x][y].unsqueeze(0).shape)
+                concatenated = torch.cat((concatenated, batches[x][y].unsqueeze(0)), 0)
+            batches[x] = concatenated
 
     return(batches)
 
 
 # hyperparameters
-numOfBatches = 2
-batchSize = 5
+numOfBatches = 1
+batchSize = 1
 
 def main():
     
-    X, Y = loadBatches(numOfBatches)
-    print(X, Y)
+    # X, Y = loadBatches(numOfBatches)
+    # print(len(X), Y)
+    # for x in X:
+    #     print(x.shape)
     # train(X, Y)
     # print(Y, len(Y))
     
@@ -271,10 +287,12 @@ def main():
     # skimages
     x, y = loadSkimages()
     
-    X = loadskiBatches(x, numOfBatches, batchSize)
+    X = loadskiBatches(x, numOfBatches, batchSize, labels = 'images')
     Y = loadskiBatches(y, numOfBatches, batchSize, labels = 'labels')
     # print(y)
-    print(X, Y)
+    # print(len(X), Y)
+    # for x in X:
+    #     print(x.shape)
     train(X, Y)
 
 

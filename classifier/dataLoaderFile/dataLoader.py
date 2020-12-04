@@ -39,7 +39,7 @@ def splitLists(data):
     # if len(data) % batchSize == 0:
     #     print('true')
     #     fact = True
-    batchSize = 5
+    batchSize = 1
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
     # split data into batches
