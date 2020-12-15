@@ -2,7 +2,7 @@ from __future__ import print_function
 import torch
 import torchvision
 import torchvision.transforms as transforms
-
+from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -18,7 +18,11 @@ from tqdm import tqdm
 
 import os
 
-data = dataLoader.main()
+from dataLoaderFile.customDataset import dataset
+
+
+# data = dataLoader.main()
+
 
 # defining network class and passing in nn.Module, a package that includes all the neural network functionality
 
@@ -30,7 +34,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # define network layers
         # 2d convolutional layers (input channels, output channels, kernel size)
-        self.conv1 = nn.Conv2d(3, 3, 5)
+        self.conv1 = nn.Conv2d(1, 3, 5)
         self.conv2 = nn.Conv2d(3, 5, 5)
         self.conv3 = nn.Conv2d(5, 5, 2)
         # Pooling layer (kernel size, step)
@@ -62,7 +66,7 @@ class Net(nn.Module):
 net = Net()
 
 # define loss function and optimiser, will be useful later
-loss = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001)
 
 # zero the gradient
@@ -99,7 +103,8 @@ def translateBatch(newBatch):
             batchImages = batchImages + [returnImage(i)]
         elif '.png' in str(i):
             # path needs to be adjusted slightly to work and the image must be translated into image mode 'I' like the rest of them
-            batchImages = batchImages + [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode='I')]
+            batchImages = batchImages + \
+                [Image.open(str(i).lstrip("b'").rstrip("'")).convert(mode='I')]
 
     # initialising ninputs as the first image transformed into a tensor
     # so that everything else can be added onto it
@@ -147,10 +152,9 @@ def loadBatches(numOfBatches, start=0):
     return x, y
 
 
-
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 2000
+    EPOCHS = 1000
     for epoch in range(EPOCHS):
         # for every colllection of batches
         # for i in tqdm(range(len(X))):
@@ -181,9 +185,10 @@ def train(X, Y):
             # step down the loss function
 
             optimizer.step()
-        if epoch%100 == 0:
+        if epoch % 100 == 0:
             print(epoch, lossAcc)
     print('999', lossAcc)
+
 
 def test(test_X, test_Y):
     # initialise the statistics as 0
@@ -213,6 +218,7 @@ def test(test_X, test_Y):
     # output accuracy percentage to 3sf
     print('Accuracy: ', round(correct/total, 3))
 
+
 def loadSkimages():
     filepath = 'classifier/dataLoaderFile/NEA_data/extracted/skimages'
     x = []
@@ -239,10 +245,10 @@ def loadSkimages():
 # def returnskiBatch(start):
 
 
-def loadskiBatches(skidata, numOfBatches, batchSize, start = 0, labels = 'normal'):
+def loadskiBatches(skidata, numOfBatches, batchSize, start=0, labels='normal'):
     # i = start
     batches = [skidata[batchSize*i:batchSize*(i+1)]
-            for i in range(int(numOfBatches))]
+               for i in range(int(numOfBatches))]
     if labels == 'labels':
         # print(labels)
         for x in range(len(batches)):
@@ -254,7 +260,8 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start = 0, labels = 'normal
             for y in range(1, len(batches[x])):
                 # print(y)
                 # print(batches[x][y].unsqueeze(0).shape)
-                concatenated = torch.cat((concatenated, batches[x][y].unsqueeze(0)), 0)
+                concatenated = torch.cat(
+                    (concatenated, batches[x][y].unsqueeze(0)), 0)
             batches[x] = concatenated
 
     return(batches)
@@ -262,17 +269,27 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start = 0, labels = 'normal
 
 # hyperparameters
 numOfBatches = 1
-batchSize = 1
+batchSize = 4
+epochs = 4
+
+dataSet = dataset(csv_file='classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv',
+                  root_dir='', transforms=transforms.ToTensor())
+print(len(dataSet))
+train_set, test_set = torch.utils.data.random_split(dataSet, [800, 199])
+train_loader = DataLoader(
+    dataset=train_set, batch_size=batchSize, shuffle=True)
+test_loader = DataLoader(dataset=test_set, batch_size=batchSize, shuffle=True)
+
 
 def main():
-    
+
     # X, Y = loadBatches(numOfBatches)
     # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
     # train(X, Y)
     # print(Y, len(Y))
-    
+
     # test the network on the last 5 batches in the data
     # test_X, test_Y = loadBatches(5, start = 30)
     # print(len(data))
@@ -284,16 +301,51 @@ def main():
     # X, Y = loadBatches(1)
     # train(X, Y)
 
-    # skimages
-    x, y = loadSkimages()
-    
-    X = loadskiBatches(x, numOfBatches, batchSize, labels = 'images')
-    Y = loadskiBatches(y, numOfBatches, batchSize, labels = 'labels')
+    # # skimages
+    # x, y = loadSkimages()
+
+    # X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
+    # Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
     # print(y)
     # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
-    train(X, Y)
+    # train(X, Y)
+
+    for epoch in range(epochs):
+        losses = []
+        for batch_idx, (data, targets) in enumerate(train_loader):
+            output = net(data)
+            loss = criterion(output, targets)
+
+            losses.append(loss.item())
+
+            optimizer.zero_grad()
+            loss.backward()
+
+            optimizer.step
+        print(f'Cost as {epoch} = {sum(losses)/len(losses)}')
+
+    def accuracy(loader, net):
+        num_correct = 0
+        num_samples = 0
+        net.eval()
+
+        with torch.no_grad():
+            for x, y in loader:
+                out = net(x)
+                num_correct += (out == y).sum()
+                num_samples += out.size(0)
+
+            print(
+                f'{num_correct} right out of {num_samples}.  {num_correct/num_samples}')
+
+        net.train()
+
+    print('Training data')
+    accuracy(train_loader, net)
+    print('Test data')
+    accuracy(test_loader, net)
 
 
 main()

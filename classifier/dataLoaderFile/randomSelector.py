@@ -12,7 +12,7 @@ def main():
     # create a new csv file
     file = open(
         'classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv', 'a')
-    for n in range(100):  # select 100 paths for testing
+    for n in range(1000):  # select 100 paths for testing
         # randomly select a number between 1 and 4
         randint = random.randrange(1, 5)
         print(randint)
@@ -35,5 +35,6 @@ def main():
                 'classifier/dataLoaderFile/NEA_data/extracted/noPathsFile.txt')
             file.write(str(randint) + ',' + line + '\n')
     file.close()  # close file
+
 
 main()
