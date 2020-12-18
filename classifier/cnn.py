@@ -11,6 +11,7 @@ from dataLoaderFile.matlabReader import returnImage
 import numpy as np
 
 from dataLoaderFile import dataLoader
+# import dataLoader
 
 import torch.optim as optim
 
@@ -74,8 +75,9 @@ optimizer.zero_grad()
 net.zero_grad()
 
 # transformt the network into datatype double so that it is consistent with the data
-net = net.float()
-# net = net.double()
+# net = net.float()
+net = net.double()
+# net = net.int()
 
 
 # premade function to transform image into pytorch tensor
@@ -154,7 +156,7 @@ def loadBatches(numOfBatches, start=0):
 
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 1000
+    EPOCHS = 100
     for epoch in range(EPOCHS):
         # for every colllection of batches
         # for i in tqdm(range(len(X))):
@@ -173,21 +175,21 @@ def train(X, Y):
             # print(outputs)
 
             # Calculate loss
-            # lossAcc = loss accumulator
-            lossAcc = loss(outputs, batch_Y)
+            # loss = loss accumulator
+            loss = criterion(outputs, batch_Y)
 
             # print(outputs, batch_Y, lossAcc)
             # print(lossAcc)
 
             # back propagate
             optimizer.zero_grad()
-            lossAcc.backward()
+            loss.backward()
             # step down the loss function
 
             optimizer.step()
         if epoch % 100 == 0:
-            print(epoch, lossAcc)
-    print('999', lossAcc)
+            print(epoch, loss)
+    # print('99', lossAcc)
 
 
 def test(test_X, test_Y):
@@ -233,7 +235,7 @@ def loadSkimages():
                     x = x + [trans(img)]
                 if attribute == filename + 'result.txt':
                     file = open(fullpath + '/' + attribute)
-                    y = y + [int(float(file.read()))]
+                    y = y + [float(file.read())]
                     file.close()
     # img = Image.open('classifier/dataLoaderFile/NEA_data/extracted/skimages/2no.jpg')
     # img.show()
@@ -301,13 +303,13 @@ def main():
     # X, Y = loadBatches(1)
     # train(X, Y)
 
-    # # skimages
-    # x, y = loadSkimages()
+    # skimages
+    x, y = loadSkimages()
 
-    # X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
-    # Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
-    # print(y)
-    # print(len(X), Y)
+    X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
+    Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
+    print(y)
+    print(len(X), Y)
     # for x in X:
     #     print(x.shape)
     # train(X, Y)
@@ -315,6 +317,7 @@ def main():
     for epoch in range(epochs):
         losses = []
         for batch_idx, (data, targets) in enumerate(train_loader):
+            # print(data)
             output = net(data)
             loss = criterion(output, targets)
 

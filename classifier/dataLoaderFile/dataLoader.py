@@ -4,10 +4,10 @@
 # import randomSelector
 from numpy import genfromtxt
 
-# from dataLoaderFile import matlabReader
-# from dataLoaderFile import normaliseNo
-# from dataLoaderFile import findPaths
-# from dataLoaderFile import randomSelector
+from dataLoaderFile import matlabReader
+from dataLoaderFile import normaliseNo
+from dataLoaderFile import findPaths
+from dataLoaderFile import randomSelector
 
 # from . import matlabReader
 
@@ -54,10 +54,12 @@ def splitLists(data):
 
 def main():
     # normaliseNo.main()
-    # findPaths.main()
-    # randomSelector.main()
-    data = loadLists()
-    return(splitLists(data))
+    findPaths.main()
+    print('paths')
+    randomSelector.main()
+    print('selector')
+    # data = loadLists()
+    # return(splitLists(data))
 
 
 # main()

@@ -7,6 +7,7 @@ from dataLoaderFile.matlabReader import returnImage
 from skimage import data, io, filters
 import matplotlib.pyplot as plt
 from PIL import Image
+import numpy as np
 from numpy import asarray
 
 
@@ -26,9 +27,11 @@ class dataset (Dataset):
         elif '.png' in str(img_path):
             img = Image.open(str(img_path).lstrip(
                 "b'").rstrip("'")).convert(mode='I')
-        image = asarray(img)
+        if img.size != (512, 512):
+            img = img.resize((512, 512))
+        image = asarray(img).astype(np.float)
 
-        label = torch.tensor(int(self.annotations.iloc[index, 0]))
+        label = torch.tensor(int(self.annotations.iloc[index, 0])) - 1
 
         if self.transforms:
             image = self.transforms(image)
