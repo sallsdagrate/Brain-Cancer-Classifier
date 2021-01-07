@@ -15,7 +15,7 @@ def main():
     for n in range(1000):  # select 100 paths for testing
         # randomly select a number between 1 and 4
         randint = random.randrange(1, 5)
-        print(randint)
+        # print(randint)
         # each random number result corresponds to a path file
         # every time a number is selected, a new path is found and stored
         if randint == 1:

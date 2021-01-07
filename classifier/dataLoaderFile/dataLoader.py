@@ -39,7 +39,7 @@ def splitLists(data):
     # if len(data) % batchSize == 0:
     #     print('true')
     #     fact = True
-    batchSize = 1
+    batchSize = 20
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
     # split data into batches
@@ -55,11 +55,11 @@ def splitLists(data):
 def main():
     # normaliseNo.main()
     findPaths.main()
-    print('paths')
+    # print('paths')
     randomSelector.main()
-    print('selector')
-    # data = loadLists()
-    # return(splitLists(data))
+    # print('selector')
+    data = loadLists()
+    return(splitLists(data))
 
 
 # main()

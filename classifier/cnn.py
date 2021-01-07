@@ -22,7 +22,7 @@ import os
 from dataLoaderFile.customDataset import dataset
 
 
-# data = dataLoader.main()
+data = dataLoader.main()
 
 
 # defining network class and passing in nn.Module, a package that includes all the neural network functionality
@@ -144,7 +144,7 @@ def loadBatches(numOfBatches, start=0):
     for i in range(start, start + numOfBatches):
         # return a batch
         n, m = translateBatch(data[i])
-        print(m)
+        # print(m)
         # add the batch to the existing list of batches of batches
         x = x + [n]
         # output batches need to be made into a datatype 'long tensor' as this is what the loss function expects
@@ -159,9 +159,9 @@ def train(X, Y):
     EPOCHS = 100
     for epoch in range(EPOCHS):
         # for every colllection of batches
-        # for i in tqdm(range(len(X))):
-        # print(epoch)
-        for i in range(len(X)):
+        for i in tqdm(range(len(X))):
+            # print(epoch)
+            # for i in range(len(X)):
             # take the current batch
             batch_X = X[i]
             batch_Y = Y[i]
@@ -184,12 +184,13 @@ def train(X, Y):
             # back propagate
             optimizer.zero_grad()
             loss.backward()
-            # step down the loss function
 
+            # step down the loss function
             optimizer.step()
-        if epoch % 100 == 0:
-            print(epoch, loss)
-    # print('99', lossAcc)
+
+        if epoch % 10 == 0:
+            print(epoch + 1, loss)
+    # print('99', loss)
 
 
 def test(test_X, test_Y):
@@ -222,17 +223,23 @@ def test(test_X, test_Y):
 
 
 def loadSkimages():
+    # open file of all skimage files
     filepath = 'classifier/dataLoaderFile/NEA_data/extracted/skimages'
     x = []
     y = []
+    # loop for all folders
     for filename in os.listdir(filepath):
+        # removing txt foles
         if not('.txt' in filename):
+            # create a full path for the folder
             fullpath = filepath + '/' + str(filename) + '/'
             for attribute in os.listdir(fullpath):
                 # print(attribute)
+                # extract the image
                 if attribute == filename + '.jpg':
                     img = Image.open(fullpath + '/' + attribute)
                     x = x + [trans(img)]
+                # extract the class
                 if attribute == filename + 'result.txt':
                     file = open(fullpath + '/' + attribute)
                     y = y + [float(file.read())]
@@ -240,6 +247,7 @@ def loadSkimages():
     # img = Image.open('classifier/dataLoaderFile/NEA_data/extracted/skimages/2no.jpg')
     # img.show()
     # print(img)
+    # check
     print(len(x))
     # print(y)
     return(x, y)
@@ -269,33 +277,33 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start=0, labels='normal'):
     return(batches)
 
 
-# hyperparameters
-numOfBatches = 1
+# # hyperparameters
+numOfBatches = 10
 batchSize = 4
-epochs = 4
+epochs = 1
 
-dataSet = dataset(csv_file='classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv',
-                  root_dir='', transforms=transforms.ToTensor())
-print(len(dataSet))
-train_set, test_set = torch.utils.data.random_split(dataSet, [800, 199])
-train_loader = DataLoader(
-    dataset=train_set, batch_size=batchSize, shuffle=True)
-test_loader = DataLoader(dataset=test_set, batch_size=batchSize, shuffle=True)
+# dataSet = dataset(csv_file='classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv',
+#                   root_dir='', transforms=transforms.ToTensor())
+# print(len(dataSet))
+# train_set, test_set = torch.utils.data.random_split(dataSet, [800, 199])
+# train_loader = DataLoader(
+#     dataset=train_set, batch_size=batchSize, shuffle=True)
+# test_loader = DataLoader(dataset=test_set, batch_size=batchSize, shuffle=True)
 
 
 def main():
 
-    # X, Y = loadBatches(numOfBatches)
+    X, Y = loadBatches(numOfBatches)
     # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
-    # train(X, Y)
+    train(X, Y)
     # print(Y, len(Y))
 
     # test the network on the last 5 batches in the data
-    # test_X, test_Y = loadBatches(5, start = 30)
-    # print(len(data))
-    # test(test_X, test_Y)
+    test_X, test_Y = loadBatches(5, start=30)
+    print(len(data))
+    test(test_X, test_Y)
     # for x in data:
     #     for y in x:
     #         print(y)
@@ -304,51 +312,51 @@ def main():
     # train(X, Y)
 
     # skimages
-    x, y = loadSkimages()
+    # x, y = loadSkimages()
 
-    X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
-    Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
-    print(y)
-    print(len(X), Y)
+    # X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
+    # Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
+    # print(y)
+    # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
     # train(X, Y)
 
-    for epoch in range(epochs):
-        losses = []
-        for batch_idx, (data, targets) in enumerate(train_loader):
-            # print(data)
-            output = net(data)
-            loss = criterion(output, targets)
+    # for epoch in range(epochs):
+    #     losses = []
+    #     for batch_idx, (data, targets) in enumerate(train_loader):
+    #         # print(data)
+    #         output = net(data)
+    #         loss = criterion(output, targets)
 
-            losses.append(loss.item())
+    #         losses.append(loss.item())
 
-            optimizer.zero_grad()
-            loss.backward()
+    #         optimizer.zero_grad()
+    #         loss.backward()
 
-            optimizer.step
-        print(f'Cost as {epoch} = {sum(losses)/len(losses)}')
+    #         optimizer.step
+    # print(f'Cost at {epoch} = {sum(losses)/len(losses)}')
 
-    def accuracy(loader, net):
-        num_correct = 0
-        num_samples = 0
-        net.eval()
+    # def accuracy(loader, net):
+    #     num_correct = 0
+    #     num_samples = 0
+    #     net.eval()
 
-        with torch.no_grad():
-            for x, y in loader:
-                out = net(x)
-                num_correct += (out == y).sum()
-                num_samples += out.size(0)
+    #     with torch.no_grad():
+    #         for x, y in loader:
+    #             out = net(x)
+    #             num_correct += (out == y).sum()
+    #             num_samples += out.size(0)
 
-            print(
-                f'{num_correct} right out of {num_samples}.  {num_correct/num_samples}')
+    #         print(
+    #             f'{num_correct} right out of {num_samples}.  {num_correct/num_samples}')
 
-        net.train()
+    #     net.train()
 
-    print('Training data')
-    accuracy(train_loader, net)
-    print('Test data')
-    accuracy(test_loader, net)
+    # print('Training data')
+    # accuracy(train_loader, net)
+    # print('Test data')
+    # accuracy(test_loader, net)
 
 
 main()

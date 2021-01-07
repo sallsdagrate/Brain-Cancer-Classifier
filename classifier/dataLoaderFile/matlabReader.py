@@ -30,7 +30,8 @@ def extractImage(filename, filePath):
     imagePath = os.path.join(directory + 'images/', imageName)
 
     imageOut = returnImage(filePath)  # extract image
-    imageOut.save(imagePath)  # save image with new name and location
+    # save image with new name and location
+    imageOut.save(filename.replace('.mat', 'img.png'))
 
     print(imagePath)
 
