@@ -35,7 +35,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # define network layers
         # 2d convolutional layers (input channels, output channels, kernel size)
-        self.conv1 = nn.Conv2d(1, 3, 5)
+        self.conv1 = nn.Conv2d(3, 3, 5)
         self.conv2 = nn.Conv2d(3, 5, 5)
         self.conv3 = nn.Conv2d(5, 5, 2)
         # Pooling layer (kernel size, step)
@@ -60,7 +60,8 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         # return x
-        return F.softmax(x, dim=1)
+        return x
+        # return F.softmax(x, dim=1)
 
 
 # instantiate network
@@ -68,15 +69,15 @@ net = Net()
 
 # define loss function and optimiser, will be useful later
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001)
+optimizer = optim.SGD(net.parameters(), lr=10e-5)
 
 # zero the gradient
 optimizer.zero_grad()
 net.zero_grad()
 
 # transformt the network into datatype double so that it is consistent with the data
-# net = net.float()
-net = net.double()
+net = net.float()
+# net = net.double()
 # net = net.int()
 
 
@@ -156,7 +157,7 @@ def loadBatches(numOfBatches, start=0):
 
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 100
+    EPOCHS = 500
     for epoch in range(EPOCHS):
         # for every colllection of batches
         for i in tqdm(range(len(X))):
@@ -238,6 +239,8 @@ def loadSkimages():
                 # extract the image
                 if attribute == filename + '.jpg':
                     img = Image.open(fullpath + '/' + attribute)
+                    if img.size != (512, 512):
+                        img = img.resize((512, 512))
                     x = x + [trans(img)]
                 # extract the class
                 if attribute == filename + 'result.txt':
@@ -256,13 +259,19 @@ def loadSkimages():
 
 
 def loadskiBatches(skidata, numOfBatches, batchSize, start=0, labels='normal'):
+    # (data, number of batches, batchsize requred, where to start from, whether the data is image or labels)
     # i = start
+
+    # split into batches
     batches = [skidata[batchSize*i:batchSize*(i+1)]
                for i in range(int(numOfBatches))]
+    # make all the label tensors into datatype long tensor, needed for the nn
     if labels == 'labels':
         # print(labels)
         for x in range(len(batches)):
             batches[x] = torch.Tensor(batches[x]).long() - 1
+
+    # for all images, add a dimension, concatenate the images into one batch list
     if labels == "images":
         for x in range(len(batches)):
             concatenated = (batches[x][0].unsqueeze(0))
@@ -270,6 +279,7 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start=0, labels='normal'):
             for y in range(1, len(batches[x])):
                 # print(y)
                 # print(batches[x][y].unsqueeze(0).shape)
+                print(batches[x][y].shape)
                 concatenated = torch.cat(
                     (concatenated, batches[x][y].unsqueeze(0)), 0)
             batches[x] = concatenated
@@ -282,28 +292,35 @@ numOfBatches = 10
 batchSize = 4
 epochs = 1
 
+# # instantiating the dataset class we imported
 # dataSet = dataset(csv_file='classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv',
 #                   root_dir='', transforms=transforms.ToTensor())
+# # testing to check all the data came through
 # print(len(dataSet))
-# train_set, test_set = torch.utils.data.random_split(dataSet, [800, 199])
+# # using inbuilt functions to randomly split the data into test and train sets
+# train_set, test_set = torch.utils.data.random_split(dataSet, [19998, 1])
+# # defining the training and testing loaders which will return a new batch of data every time we enumerate them
+# # This allows us to run them alongside our loop
 # train_loader = DataLoader(
 #     dataset=train_set, batch_size=batchSize, shuffle=True)
 # test_loader = DataLoader(dataset=test_set, batch_size=batchSize, shuffle=True)
 
+FILE = 'model.pth'
+
 
 def main():
 
-    X, Y = loadBatches(numOfBatches)
+    # X, Y = loadBatches(numOfBatches)
     # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
-    train(X, Y)
+    # train(X, Y)
     # print(Y, len(Y))
 
     # test the network on the last 5 batches in the data
-    test_X, test_Y = loadBatches(5, start=30)
-    print(len(data))
-    test(test_X, test_Y)
+    # test_X, test_Y = loadBatches(5, start=30)
+    # print(len(data))
+    # test(test_X, test_Y)
     # for x in data:
     #     for y in x:
     #         print(y)
@@ -312,42 +329,68 @@ def main():
     # train(X, Y)
 
     # skimages
-    # x, y = loadSkimages()
+    x, y = loadSkimages()
 
-    # X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
-    # Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
-    # print(y)
-    # print(len(X), Y)
-    # for x in X:
-    #     print(x.shape)
-    # train(X, Y)
+    X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
+    Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
+    print(y)
+    print(len(X), Y)
+    for x in X:
+        print(x.shape)
+    train(X, Y)
 
+    torch.save(net.state_dict(), FILE)
+
+    # # for a set number of epochs
     # for epoch in range(epochs):
+    #     # define a list to store our losses
     #     losses = []
+    #     # enumerating the training loader
     #     for batch_idx, (data, targets) in enumerate(train_loader):
     #         # print(data)
+    #         # push the batch through the net
     #         output = net(data)
+    #         # define loss
     #         loss = criterion(output, targets)
-
+    #         # append losses list with loss for this batch
     #         losses.append(loss.item())
 
+    #         # zero gradient
     #         optimizer.zero_grad()
+    #         # back propagate
     #         loss.backward()
 
+    #         # step along the loss function
     #         optimizer.step
-    # print(f'Cost at {epoch} = {sum(losses)/len(losses)}')
 
+    #     # print the cost at each epoch
+    #     print(f'Cost at {epoch} = {sum(losses)/len(losses)}')
+
+    # # function to test the accuracy of the network
     # def accuracy(loader, net):
+    #     # starting counts at 0
     #     num_correct = 0
     #     num_samples = 0
+    #     # function to evaluate the network
     #     net.eval()
 
+    #     # not calculating gradients, saves time
     #     with torch.no_grad():
+    #         # for every batch in the loader
     #         for x, y in loader:
+    #             # forward prop
     #             out = net(x)
-    #             num_correct += (out == y).sum()
-    #             num_samples += out.size(0)
-
+    #             # update total
+    #             # update correct if it was correct
+    #             # print(out)
+    #             i = 0
+    #             for x in out:
+    #                 print(torch.argmax(x))
+    #                 if torch.argmax(x) == y[0]:
+    #                     num_correct += 1
+    #                 num_samples += 1
+    #                 i += 1
+    #         # print accuracy rate
     #         print(
     #             f'{num_correct} right out of {num_samples}.  {num_correct/num_samples}')
 

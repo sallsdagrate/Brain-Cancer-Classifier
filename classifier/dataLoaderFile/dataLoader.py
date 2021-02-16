@@ -54,9 +54,9 @@ def splitLists(data):
 
 def main():
     # normaliseNo.main()
-    findPaths.main()
+    # findPaths.main()
     # print('paths')
-    randomSelector.main()
+    # randomSelector.main()
     # print('selector')
     data = loadLists()
     return(splitLists(data))
