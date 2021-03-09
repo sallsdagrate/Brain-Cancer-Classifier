@@ -36,7 +36,7 @@ def extractImage(filename, filePath):
     print(imagePath)
 
 
-def returnLabel(filename, filePath):
+def returnLabel(filePath):
     readFile = h5py.File(filePath, 'r')  # open in read mode
     fileData = readFile['cjdata']
 

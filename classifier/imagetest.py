@@ -90,6 +90,9 @@ for x in unzipped[1]:
     resultfile.write(str(result))
     resultfile.close()
     allResults.write(str(f'{str(count)} : {result}\n'))
+
+    if count == 10000:
+        break
     # print(result)
     # if not('no' in str(x)):
     # borderfile = open(path + str(count) + 'border.txt', 'a')

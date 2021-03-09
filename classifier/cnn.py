@@ -22,8 +22,13 @@ import os
 from dataLoaderFile.customDataset import dataset
 
 
-data = dataLoader.main()
+# data = dataLoader.main()
 
+
+# # hyperparameters for easy access
+numOfBatches = 999
+batchSize = 10
+epochs = 100
 
 # defining network class and passing in nn.Module, a package that includes all the neural network functionality
 
@@ -35,8 +40,8 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # define network layers
         # 2d convolutional layers (input channels, output channels, kernel size)
-        self.conv1 = nn.Conv2d(3, 3, 5)
-        self.conv2 = nn.Conv2d(3, 5, 5)
+        self.conv1 = nn.Conv2d(3, 5, 5)
+        self.conv2 = nn.Conv2d(5, 5, 5)
         self.conv3 = nn.Conv2d(5, 5, 2)
         # Pooling layer (kernel size, step)
         self.pool = nn.MaxPool2d(2, 2)
@@ -49,16 +54,24 @@ class Net(nn.Module):
     # forward propagation function
     def forward(self, x):
         # pass through layer, rectified linear function and pool all at once
+        # print(x.size())
         x = self.pool(F.relu(self.conv1(x)))
+        # print(x.size())
         x = self.pool(F.relu(self.conv2(x)))
+        # print(x.size())
         x = self.pool(F.relu(self.conv3(x)))
+        # print(x.size())
         # print(x[0].shape)
         # transform into linear form
         x = x.view(-1, 5 * 62 * 62)
+        # print(x.size())
         # print(x[0].shape)
         x = F.relu(self.fc1(x))
+        # print(x.size())
         x = F.relu(self.fc2(x))
+        # print(x.size())
         x = F.relu(self.fc3(x))
+        # print(x.size())
         # return x
         return x
         # return F.softmax(x, dim=1)
@@ -69,7 +82,7 @@ net = Net()
 
 # define loss function and optimiser, will be useful later
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=10e-5)
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 # zero the gradient
 optimizer.zero_grad()
@@ -157,10 +170,12 @@ def loadBatches(numOfBatches, start=0):
 
 def train(X, Y):
     # Epochs are the number of large loops through the data you do
-    EPOCHS = 500
-    for epoch in range(EPOCHS):
+    EPOCHS = epochs
+    for epoch in tqdm(range(EPOCHS)):
+        # for epoch in range(EPOCHS):
         # for every colllection of batches
-        for i in tqdm(range(len(X))):
+        # for i in tqdm(range(len(X))):
+        for i in range(len(X)):
             # print(epoch)
             # for i in range(len(X)):
             # take the current batch
@@ -189,8 +204,21 @@ def train(X, Y):
             # step down the loss function
             optimizer.step()
 
-        if epoch % 10 == 0:
-            print(epoch + 1, loss)
+        # if epoch % 10 == 0:
+        #     print(epoch + 1, loss)
+
+        # print(epoch, loss)
+        if epoch == 0:
+            firstLoss = loss.item()
+        elif epoch == EPOCHS - 1:
+            lastLoss = loss.item()
+
+        torch.save(net.state_dict(), 'model.pth')
+
+    print('%r, %r' % (firstLoss, lastLoss))
+    dLoss = firstLoss - lastLoss
+    print('Loss change: %r' % dLoss)
+
     # print('99', loss)
 
 
@@ -231,7 +259,7 @@ def loadSkimages():
     # loop for all folders
     for filename in os.listdir(filepath):
         # removing txt foles
-        if not('.txt' in filename):
+        if not('.txt' in filename or '.DS_Store' in filename):
             # create a full path for the folder
             fullpath = filepath + '/' + str(filename) + '/'
             for attribute in os.listdir(fullpath):
@@ -279,18 +307,13 @@ def loadskiBatches(skidata, numOfBatches, batchSize, start=0, labels='normal'):
             for y in range(1, len(batches[x])):
                 # print(y)
                 # print(batches[x][y].unsqueeze(0).shape)
-                print(batches[x][y].shape)
+                # print(batches[x][y].shape)
                 concatenated = torch.cat(
                     (concatenated, batches[x][y].unsqueeze(0)), 0)
             batches[x] = concatenated
 
     return(batches)
 
-
-# # hyperparameters
-numOfBatches = 10
-batchSize = 4
-epochs = 1
 
 # # instantiating the dataset class we imported
 # dataSet = dataset(csv_file='classifier/dataLoaderFile/NEA_data/extracted/randomPaths.csv',
@@ -305,13 +328,28 @@ epochs = 1
 #     dataset=train_set, batch_size=batchSize, shuffle=True)
 # test_loader = DataLoader(dataset=test_set, batch_size=batchSize, shuffle=True)
 
+# def getCount():
+#     file = open('count.txt', 'r')
+#     num = int(file.readlines()[0])
+#     file.close()
+#     return num
+
+
+# def addToCount():
+#     file = open('count.txt', 'w')
+#     num = getCount()
+#     print(str(num))
+#     file.write(str(num+1))
+#     file.close()
+
+
 FILE = 'model.pth'
 
 
 def main():
 
     # X, Y = loadBatches(numOfBatches)
-    # print(len(X), Y)
+    # # print(len(X), Y)
     # for x in X:
     #     print(x.shape)
     # train(X, Y)
@@ -333,11 +371,16 @@ def main():
 
     X = loadskiBatches(x, numOfBatches, batchSize, labels='images')
     Y = loadskiBatches(y, numOfBatches, batchSize, labels='labels')
-    print(y)
+    # print(y)
     print(len(X), Y)
-    for x in X:
-        print(x.shape)
+    # for x in X:
+    #     print(x.shape)
     train(X, Y)
+
+    # count = getCount()
+    # print(count)
+    # # addToCount()
+    # print(getCount())
 
     torch.save(net.state_dict(), FILE)
 
