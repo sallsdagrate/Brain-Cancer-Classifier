@@ -26,8 +26,8 @@ from dataLoaderFile.customDataset import dataset
 
 
 # # hyperparameters for easy access
-numOfBatches = 999
-batchSize = 10
+numOfBatches = 20
+batchSize = 5
 epochs = 100
 
 # defining network class and passing in nn.Module, a package that includes all the neural network functionality
@@ -222,10 +222,16 @@ def train(X, Y):
     # print('99', loss)
 
 
-def test(test_X, test_Y):
+def test(test_X, test_Y, modelPath=''):
     # initialise the statistics as 0
     correct = 0
     total = 0
+    if modelPath != '':
+        net.load_state_dict(torch.load(modelPath))
+
+    # set the network to evaluation mode (does not calculate gradients)
+    net.eval()
+
     # no gradients need to be calculated for the verification process
     with torch.no_grad():
         # for each batch in the test data
@@ -375,7 +381,8 @@ def main():
     print(len(X), Y)
     # for x in X:
     #     print(x.shape)
-    train(X, Y)
+    # train(X, Y)
+    test(X, Y, 'model.pth')
 
     # count = getCount()
     # print(count)
