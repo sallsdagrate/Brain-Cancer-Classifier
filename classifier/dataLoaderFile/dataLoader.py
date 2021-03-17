@@ -9,6 +9,7 @@ from dataLoaderFile import normaliseNo
 from dataLoaderFile import findPaths
 from dataLoaderFile import randomSelector
 
+# from . import matlabReader
 
 # normalise
 # find paths of all images
@@ -30,15 +31,15 @@ def splitLists(data):
     # repeat until batch size is a factor or data list size
     # fact = False
     # while fact == False:
-        # batchSize = 0
-        # while batchSize < 1:
-        #     batchSize = int(input('enter batch size: '))
-        # print(len(data) % batchSize)
+    # batchSize = 0
+    # while batchSize < 1:
+    #     batchSize = int(input('enter batch size: '))
+    # print(len(data) % batchSize)
 
-        # if len(data) % batchSize == 0:
-        #     print('true')
-        #     fact = True
-    batchSize = 4
+    # if len(data) % batchSize == 0:
+    #     print('true')
+    #     fact = True
+    batchSize = 20
     numOfBatches = len(data)/batchSize  # save number of batches
     # print(numOfBatches)
     # split data into batches
@@ -54,12 +55,15 @@ def splitLists(data):
 def main():
     # normaliseNo.main()
     # findPaths.main()
+    # print('paths')
     # randomSelector.main()
+    # print('selector')
     data = loadLists()
     return(splitLists(data))
 
 
-main()
+# data = main()
+# print(data)
 
 
 def test():
