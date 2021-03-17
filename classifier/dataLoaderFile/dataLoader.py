@@ -62,7 +62,8 @@ def main():
     return(splitLists(data))
 
 
-# main()
+# data = main()
+# print(data)
 
 
 def test():

@@ -73,6 +73,7 @@ for x in unzipped[1]:
     # image to array
     image = asarray(img)
     # edgefilename = filename + 'edges/'
+
     # save image
     plt.imsave(filename, image)
     # apply filters
